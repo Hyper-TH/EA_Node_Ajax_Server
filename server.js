@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import { productsRouter } from 'products/productsRouter.js'
+import productsRouter from './products/productsRouter.js';
+import { connectDB } from './mongodb.js';
 
 const app = express();
 app.use(cors());
@@ -11,6 +12,9 @@ app.use(express.json({ limit: '50mb' }));
 
 // Increase URL-encoded payload limit 
 app.use(express.urlencoded({ limit: '50mb', extended: true })); 
+
+// MongoDB connection
+connectDB();
 
 // Endpoint for testing
 app.get('/message', (req, res) => {
