@@ -1,32 +1,27 @@
-import { MongoClient } from 'mongodb';
-import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 
-dotenv.config();
+export default function connectDB() {
+    const url = "mongodb://127.0.0.1/products_sample";
 
-// DB Url and Settings
-const url = process.env.MONGO_URI || "mongodb://localhost:27017/";
-const dbName = 'mydb'; // Database name
-
-let dbInstance = null;
-
-// Connect to the MongoDB server
-export const connectDB = async () => {
     try {
-        const client = await MongoClient.connect(url, {
+        mongoose.connect(url, {
             useNewUrlParser: true,
-            useUnifiedTopology: true
+            useUnifiedTopology: true,
         });
-        const db = client.db(dbName);
-        console.log("MongoDB connected successfully");
-        dbInstance = db;
-    } catch (error) {
-        console.error("Could not connect to MongoDB:", error);
-        process.exit(1); // Stop the node.js process if unable to connect
+    } catch (err) {
+        console.error(err.message);
+        process.exit(1);
     }
-};
 
-// Function to get the database instance
-export const getDB = () => {
-    if (!dbInstance) throw new Error('Database not initialized. Call connectDB first.');
-    return dbInstance;
-};
+    const dbConnection = mongoose.connection;
+
+    dbConnection.once("open", (_) => {
+        console.log(`Database connected: ${url}`);
+    });
+
+    dbConnection.on("error", (err) => {
+        console.error(`connection error: ${err}`);
+    });
+    
+    return;
+}
