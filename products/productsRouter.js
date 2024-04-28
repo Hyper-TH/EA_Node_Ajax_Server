@@ -2,6 +2,7 @@ import express from 'express';
 import ProductModel from '../mongodb/product.js';
 import { countTotalDocuments } from './components/countTotalDocuments.js';
 import { findDocIndex } from './components/findDocIndex.js'
+import { fetchDocumentByIndex } from './components/fetchDocumentByIndex.js';
 
 const router = express.Router();
 
@@ -23,7 +24,7 @@ router.get("/getProds", async (req, res) => {
         } else {
             // If no ID provided, return the first document
             product = await ProductModel.findOne();
-            index = 1;
+            index = 0;
 
             if (!product) {
                 return res.status(404).json({ message: "No products found" });
@@ -41,6 +42,26 @@ router.get("/getProds", async (req, res) => {
     }
 });
 
+router.get("/getItem", async (req, res) => {
+    const index = req.query.index;
+    try {
+        console.log(`Got: `, index);
+
+        const product = await fetchDocumentByIndex(index);
+
+        if (product) {
+            const total = await countTotalDocuments();
+            res.json({ product: product, total: total, index: index })
+        } else {
+            return res.status(404).json({ message: "No products found" });
+        }
+
+    } catch (error) {
+        console.error("Error accessing the database:", error);
+        res.status(500).send({ error: error.message });
+    }
+})
+
 router.get("/addProd", async (req, res) => {
     try {
         
@@ -50,13 +71,15 @@ router.get("/addProd", async (req, res) => {
 });
 
 router.put("/editProd", async (req, res) => {
-    const { id } = req.params;
-    const { name } = req.body;
+    console.log(`Received request of updating a product`);
+    const { id, name, manufacturer, price } = req.body;
 
+    console.log(id, name, brand, price);
+    
     try {
         const updatedProd = await ProductModel.findByIdAndUpdate(
             id,
-            { $set: { name: name } },
+            { $set: { name: name, manufacturer: manufacturer, price: price } },
             { new: true, runValidators: true }
         );
 
