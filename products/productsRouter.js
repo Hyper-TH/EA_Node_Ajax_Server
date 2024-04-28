@@ -73,8 +73,6 @@ router.get("/addProd", async (req, res) => {
 router.put("/editProd", async (req, res) => {
     console.log(`Received request of updating a product`);
     const { id, name, manufacturer, price } = req.body;
-
-    console.log(id, name, brand, price);
     
     try {
         const updatedProd = await ProductModel.findByIdAndUpdate(
