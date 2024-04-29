@@ -4,6 +4,8 @@ import productsRouter from './products/productsRouter.js';
 import userRouter from './products/userRouter.js';
 import connectDB from './mongodb/mongodb.js'
 import admin from 'firebase-admin';
+import mongoose from 'mongoose';
+import UserModel from './mongodb/user.js';
 import { firestore, db } from './config/config.js';
 import { getDocs, collection } from 'firebase/firestore';
 
@@ -55,7 +57,6 @@ app.get('/login', async (req, res) => {
         if (filteredData.length === 0) {
             console.log(`User is not in the database`);
             const data = {
-                medicines: {},
                 type: "standard"
             }
 
@@ -87,6 +88,21 @@ app.get('/login', async (req, res) => {
                 return res.sendStatus(401);
             }
         }
+
+        // Check and update MongoDB
+        const mongoUser = await UserModel.findOne({ email: user }).exec();
+        if (!mongoUser) {
+            console.log(`User ${user} not in MongoDB, adding...`);
+            const newUser = new UserModel({
+                _id: new mongoose.Types.ObjectId(),
+                email: user,
+                type: "standard",
+                product: []
+            });
+            await newUser.save();
+            console.log("User added to MongoDB users collection");
+        }
+
 
         // If verification is successful, respond with the user type of the first matched document
         res.json({ message: filteredData[0].type});
