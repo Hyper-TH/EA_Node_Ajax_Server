@@ -126,7 +126,6 @@ router.put("/editProd", async (req, res) => {
         if (updatedProd) {
             res.json({ success: true, message: "Product updated successfully", data: updatedProd });
         } else {
-            // TODO: Send back appropriate data
             res.status(404).json({ success: false, message: "Product not found" });
         }
     } catch (error) {
