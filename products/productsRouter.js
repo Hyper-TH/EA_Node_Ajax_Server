@@ -7,7 +7,33 @@ import { fetchDocumentByIndex } from './components/fetchDocumentByIndex.js';
 const router = express.Router();
 
 
-router.get("/getProds", async (req, res) => {
+router.get('/getProds', async (req, res) => {
+    const sku = req.query.sku; // assuming the SKU is passed as a query parameter
+
+    if (!sku) {
+        return res.status(400).json({ success: false, message: "SKU is required" });
+    }
+
+    try {
+        // Find the product with the exact numeric SKU
+        const product = await ProductModel.findOne({ sku: sku });
+        let results = [];
+
+        if (product) {
+            console.log(product);
+            results.push(product);
+
+            res.json({ success: true, products: results });
+        } else {
+            res.status(404).json({ success: false, message: "No product found with given SKU" });
+        }
+    } catch (error) {
+        console.error('Error retrieving product:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get("/getProd", async (req, res) => {
     try {
         let product;
         let total;
