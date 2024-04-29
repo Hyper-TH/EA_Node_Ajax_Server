@@ -8,29 +8,46 @@ const router = express.Router();
 
 
 router.get('/getProds', async (req, res) => {
-    const sku = req.query.sku; // assuming the SKU is passed as a query parameter
+    const input = req.query.input;
+    const type = req.query.type; // assuming the SKU is passed as a query parameter
 
-    if (!sku) {
-        return res.status(400).json({ success: false, message: "SKU is required" });
-    }
-
-    try {
-        // Find the product with the exact numeric SKU
-        const product = await ProductModel.findOne({ sku: sku });
-        let results = [];
-
-        if (product) {
-            console.log(product);
-            results.push(product);
-
-            res.json({ success: true, products: results });
-        } else {
-            res.status(404).json({ success: false, message: "No product found with given SKU" });
+    if (type === "name") {
+        try {
+            // Using regex for partial matching on the name, case-insensitive
+            const regex = new RegExp(input, 'i'); // 'i' makes it case insensitive
+    
+            // Find all products where the name field contains the substring `name`
+            const products = await ProductModel.find({ name: { $regex: regex } });
+    
+            if (products.length > 0) {
+                res.json({ success: true, products: products });
+            } else {
+                res.status(404).json({ success: false, message: "No products found with the given name substring" });
+            }
+        } catch (error) {
+            console.error('Error retrieving products:', error);
+            res.status(500).json({ error: error.message });
         }
-    } catch (error) {
-        console.error('Error retrieving product:', error);
-        res.status(500).json({ error: error.message });
+    } else {
+        try {
+            // Find the product with the exact numeric SKU
+            const product = await ProductModel.findOne({ sku: input });
+            let results = [];
+    
+            if (product) {
+                console.log(product);
+                results.push(product);
+    
+                res.json({ success: true, products: results });
+            } else {
+                res.status(404).json({ success: false, message: "No product found with given SKU" });
+            }
+        } catch (error) {
+            console.error('Error retrieving product:', error);
+            res.status(500).json({ error: error.message });
+        }
     }
+    
 });
 
 router.get("/getProd", async (req, res) => {
