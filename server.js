@@ -63,14 +63,6 @@ app.get('/login', async (req, res) => {
             // Add the new user to the 'users' collection with 'user' as the document ID
             await firestore.collection("users").doc(user).set(data);
 
-            // Fetch the user again 
-            filteredData = data.docs.map((doc) => ({
-                ...doc.data(),  // Spread operator to include all document fields
-                id: doc.id,     // Add the document ID as an 'id' field
-            }))
-            .filter((users) => users.id === user);  // Filter the data to only include the user matching the provided 'user' query parameter
-            
-            console.log("User added to the users collection");
         } else {
 
             // Attempt to verify the token using Firebase Admin SDK
