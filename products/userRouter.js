@@ -32,6 +32,34 @@ router.put('/add', async (req, res) => {
 
 }); 
 
+router.post('/remove', async (req, res) => {
+    const { email, productID } = req.body;
+    try {
+        // Use the $pull operator to remove the product from the product array
+        const result = await UserModel.findOneAndUpdate(
+            { email: email }, // Query to find the document
+            { $pull: { product: { id: productID } } }, // Remove the product with the specified productID
+            { new: true } // Return the updated document
+        );
+
+        console.log(result);
+
+        // Check if the user document was found and updated
+        if (result) {
+            res.json({
+                message: 'Product removed successfully',
+                data: result
+            });
+
+        } else {
+            res.status(404).json({ success: false, message: "User not found with the given email or Product ID not found." });
+        }
+    } catch (error) {
+        console.error('Failed to remove product:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 router.get('/getCart', async (req, res) => {
     const email = req.query.email;
 
