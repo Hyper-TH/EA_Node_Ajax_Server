@@ -34,7 +34,6 @@ router.get("/getProds", async (req, res) => {
 
         total = await countTotalDocuments();
 
-        console.log("Product found:", product);
         res.json({ product: product, total: total, index: index});
     } catch (error) {
         console.error("Error accessing the database:", error);
@@ -92,11 +91,21 @@ router.put("/editProd", async (req, res) => {
     }
 });
 
-router.get("/deleteProd", async (req, res) => {
+router.put('/deleteProd', async (req, res) => {
+    const { id } = req.body;
+
     try {
-        
+        const deletedProduct = await ProductModel.findByIdAndDelete(id);
+
+        if (deletedProduct) {
+            res.json({ success: true, message: "Product deleted successfully", data: deletedProduct });
+        } else {
+            // No document found with the given ID
+            res.status(404).json({ success: false, message: "Product not found" });
+        }
     } catch (error) {
-        res.status(500).send({ error })
+        console.error('Error deleting product:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
