@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import productsRouter from './products/productsRouter.js';
+import userRouter from './products/userRouter.js';
 import connectDB from './mongodb/mongodb.js'
 import admin from 'firebase-admin';
 import { firestore, db } from './config/config.js';
@@ -96,3 +97,4 @@ app.get('/login', async (req, res) => {
 });
 
 app.use(productsRouter);
+app.use(userRouter);
