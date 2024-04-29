@@ -7,7 +7,8 @@ const UserSchema = new mongoose.Schema({
     product: [{
         id: { type: String, required: false },
         name: { type: String, required: false },
-        price: { type: Number, required: false }
+        price: { type: Number, required: false },
+        quantity: { type: Number, required: false }
     }],
 }, { strict: false });
 
