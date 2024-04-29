@@ -1,5 +1,5 @@
 import express from 'express';
-import ProductModel from '../mongodb/product.js';
+// import ProductModel from '../mongodb/product.js';
 import UserModel from '../mongodb/user.js';
 
 const router = express.Router();
@@ -8,57 +8,76 @@ router.put('/add', async (req, res) => {
     const { email, productID, productName, productPrice } = req.body;
 
     try {
-        const result = await UserModel.findOneAndUpdate(
-            { email: email }, // query to find the document
-            {
-                $set: { type: "standard" }, // setting 'type' only if needed
-                $push: { product: { id: productID, name: productName, price: productPrice } } // pushing to the 'product' array
-            },
-            {
-                new: true,
-                upsert: true,
-                setDefaultsOnInsert: true
-            }
-        );
+        const user = await UserModel.findOne({ email: email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+
+        // Check if the product already exists
+        const productExists = user.product.find(p => p.id === productID);
+
+        if (productExists) {
+            // If product exists, increment the quantity
+            await UserModel.findOneAndUpdate(
+                { email: email, "product.id": productID },
+                { $inc: { "product.$.quantity": 1 } }
+            );
+        } else {
+            // If product does not exist, add it with quantity set to 1
+            await UserModel.findOneAndUpdate(
+                { email: email },
+                { $push: { product: { id: productID, name: productName, price: productPrice, quantity: 1 } } }
+            );
+        }
 
         res.json({
-            message: 'User updated or created successfully',
-            data: result
+            message: 'Product updated or added successfully'
         });
     } catch (error) {
-        console.error('Failed to add or update user:', error);
+        console.error('Failed to add or update product:', error);
         res.status(500).json({ error: error.message });
     }
+});
 
-}); 
 
 router.post('/remove', async (req, res) => {
     const { email, productID } = req.body;
+
     try {
-        // Use the $pull operator to remove the product from the product array
-        const result = await UserModel.findOneAndUpdate(
-            { email: email }, // Query to find the document
-            { $pull: { product: { id: productID } } }, // Remove the product with the specified productID
-            { new: true } // Return the updated document
-        );
-
-        console.log(result);
-
-        // Check if the user document was found and updated
-        if (result) {
-            res.json({
-                message: 'Product removed successfully',
-                data: result
-            });
-
-        } else {
-            res.status(404).json({ success: false, message: "User not found with the given email or Product ID not found." });
+        const user = await UserModel.findOne({ email: email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found." });
         }
+
+        // Check if the product exists and quantity
+        const product = user.product.find(p => p.id === productID);
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not found." });
+        }
+
+        if (product.quantity > 1) {
+            // Decrement the quantity by 1
+            await UserModel.findOneAndUpdate(
+                { email: email, "product.id": productID },
+                { $inc: { "product.$.quantity": -1 } }
+            );
+        } else {
+            // Remove the product from the list
+            await UserModel.findOneAndUpdate(
+                { email: email },
+                { $pull: { product: { id: productID } } }
+            );
+        }
+
+        res.json({
+            message: 'Product quantity decremented or product removed successfully'
+        });
     } catch (error) {
         console.error('Failed to remove product:', error);
         res.status(500).json({ error: error.message });
     }
 });
+
 
 router.get('/getCart', async (req, res) => {
     const email = req.query.email;
@@ -73,9 +92,13 @@ router.get('/getCart', async (req, res) => {
         // Initialize total price
         let totalPrice = 0;
 
-        // Calculate the total price of all products
+        // Calculate the total price of all products, considering the quantity
         if (user.product && user.product.length > 0) {
-            totalPrice = user.product.reduce((acc, curr) => acc + (curr.price || 0), 0);
+            totalPrice = user.product.reduce((acc, curr) => {
+                // Calculate product total based on price and quantity
+                const productTotal = (curr.price || 0) * (curr.quantity || 1); // Use || 1 to default quantity to 1 if undefined or zero
+                return acc + productTotal;
+            }, 0);
         }
 
         // Return the products array and the total price
