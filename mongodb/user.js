@@ -8,7 +8,8 @@ const UserSchema = new mongoose.Schema({
         id: { type: String, required: false },
         name: { type: String, required: false },
         price: { type: Number, required: false },
-        quantity: { type: Number, required: false }
+        quantity: { type: Number, required: false },
+        shipping: { type: Number, required: false }
     }],
 }, { strict: false });
 

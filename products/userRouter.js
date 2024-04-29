@@ -5,7 +5,7 @@ import UserModel from '../mongodb/user.js';
 const router = express.Router();
 
 router.put('/add', async (req, res) => {
-    const { email, productID, productName, productPrice } = req.body;
+    const { email, productID, productName, productPrice, productShipping } = req.body;
 
     try {
         const user = await UserModel.findOne({ email: email });
@@ -26,7 +26,7 @@ router.put('/add', async (req, res) => {
             // If product does not exist, add it with quantity set to 1
             await UserModel.findOneAndUpdate(
                 { email: email },
-                { $push: { product: { id: productID, name: productName, price: productPrice, quantity: 1 } } }
+                { $push: { product: { id: productID, name: productName, price: productPrice, shipping: productShipping, quantity: 1 } } }
             );
         }
 
@@ -95,18 +95,26 @@ router.get('/getCart', async (req, res) => {
         // Calculate the total price of all products, considering the quantity
         if (user.product && user.product.length > 0) {
             totalPrice = user.product.reduce((acc, curr) => {
-                // Calculate product total based on price and quantity
+                // Calculate product total based on price and quantity and shipping
                 const productTotal = (curr.price || 0) * (curr.quantity || 1); // Use || 1 to default quantity to 1 if undefined or zero
-                return acc + productTotal;
+                
+                // Check if there is a shipping cost and add it to the total price (not multiplied by quantity)
+                const shippingCost = curr.shipping > 0 ? curr.shipping : 0;
+
+                return acc + productTotal + shippingCost;
             }, 0);
         }
 
+        // Round the total price to two decimal places
+        totalPrice = parseFloat(totalPrice.toFixed(2));
+        
         // Return the products array and the total price
         res.json({
             success: true,
             products: user.product,
             totalPrice: totalPrice
         });
+
     } catch (error) {
         console.error('Failed to get list', error);
         res.status(500).json({ error: error.message });

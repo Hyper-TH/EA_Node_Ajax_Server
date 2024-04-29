@@ -114,12 +114,12 @@ router.get("/addProd", async (req, res) => {
 
 router.put("/editProd", async (req, res) => {
     console.log(`Received request of updating a product`);
-    const { id, name, manufacturer, price } = req.body;
+    const { id, name, manufacturer, price, shipping } = req.body;
     
     try {
         const updatedProd = await ProductModel.findByIdAndUpdate(
             id,
-            { $set: { name: name, manufacturer: manufacturer, price: price } },
+            { $set: { name: name, manufacturer: manufacturer, price: price, shipping: shipping } },
             { new: true, runValidators: true }
         );
 
