@@ -20,7 +20,7 @@ router.get('/getProds', async (req, res) => {
     
             // Find all products where the name field contains the substring `name`
             const products = await ProductModel.find({ name: { $regex: regex } });
-    
+            
             if (products.length > 0) {
                 res.json({ success: true, products: products });
             } else {
@@ -30,6 +30,29 @@ router.get('/getProds', async (req, res) => {
             console.error('Error retrieving products:', error);
             res.status(500).json({ error: error.message });
         }
+    } else if (type === "category") {
+        try {
+            // Using regex for partial matching on the category name, case-insensitive
+            const regex = new RegExp(decodeURIComponent(input), 'i');
+
+            console.log(regex);
+
+            // Find all products where any category name field contains the substring `input`
+            const products = await ProductModel.find({ "category.name": { $regex: regex } });
+
+            console.log(products);
+
+            if (products.length > 0) {
+                res.json({ success: true, products: products });
+            } else {
+                res.status(404).json({ success: false, message: "No products found with the given category name substring" });
+            }
+
+        } catch (error) {
+            console.error('Error retrieving products:', error);
+            res.status(500).json({ error: error.message });
+        }
+
     } else {
         try {
             // Find the product with the exact numeric SKU
@@ -148,8 +171,7 @@ router.put('/deleteProd', async (req, res) => {
 router.get('/getCategories', async (req, res) => {
     try {
         const categories = await CategoryModel.find({})
-            .select('id name') // Select only the id and name fields
-            .limit(10); // Limit to 10 documents
+            .select('id name'); // Select only the id and name fields
 
         res.json(categories);
     } catch (err) {
