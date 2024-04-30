@@ -1,4 +1,4 @@
-import ProductModel from "../../mongodb/product.js";
+import ProductModel from "../../../mongodb/product.js";
 
 export const fetchDocumentByIndex = async (index) => {
     try {

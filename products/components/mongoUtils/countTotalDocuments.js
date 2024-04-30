@@ -1,4 +1,4 @@
-import ProductModel from "../../mongodb/product.js";
+import ProductModel from "../../../mongodb/product.js";
 import mongoose from 'mongoose';
 
 export const countTotalDocuments = async () => {

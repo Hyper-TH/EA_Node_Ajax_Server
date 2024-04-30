@@ -1,8 +1,8 @@
 import express from 'express';
 import ProductModel from '../mongodb/product.js';
-import { countTotalDocuments } from './components/countTotalDocuments.js';
-import { findDocIndex } from './components/findDocIndex.js'
-import { fetchDocumentByIndex } from './components/fetchDocumentByIndex.js';
+import { countTotalDocuments } from './components/mongoUtils/countTotalDocuments.js';
+import { findDocIndex } from './components/mongoUtils/findDocIndex.js'
+import { fetchDocumentByIndex } from './components/mongoUtils/fetchDocumentByIndex.js';
 
 const router = express.Router();
 
