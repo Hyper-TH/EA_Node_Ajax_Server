@@ -1,5 +1,6 @@
 import express from 'express';
 import ProductModel from '../mongodb/product.js';
+import CategoryModel from '../mongodb/category.js';
 import { countTotalDocuments } from './components/mongoUtils/countTotalDocuments.js';
 import { findDocIndex } from './components/mongoUtils/findDocIndex.js'
 import { fetchDocumentByIndex } from './components/mongoUtils/fetchDocumentByIndex.js';
@@ -148,6 +149,19 @@ router.put('/deleteProd', async (req, res) => {
     } catch (error) {
         console.error('Error deleting product:', error);
         res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/getCategories', async (req, res) => {
+    try {
+        const categories = await CategoryModel.find({})
+            .select('id name') // Select only the id and name fields
+            .limit(10); // Limit to 10 documents
+
+        res.json(categories);
+    } catch (err) {
+        console.error("Error fetching categories:", err);
+        res.status(500).json({ message: "Failed to fetch categories", error: err.message });
     }
 });
 
