@@ -3,18 +3,8 @@ import ProductModel from '../mongodb/product.js';
 import { countTotalDocuments } from './components/mongoUtils/countTotalDocuments.js';
 import { findDocIndex } from './components/mongoUtils/findDocIndex.js'
 import { fetchDocumentByIndex } from './components/mongoUtils/fetchDocumentByIndex.js';
-
+import { generateSKU, generateUPC } from './components/randGenerator.js';
 const router = express.Router();
-
-// Helper function to generate a random SKU
-const generateSKU = () => {
-    return Math.floor(100000 + Math.random() * 900000);  // Generates a 6-digit number
-};
-
-// Helper function to generate a random UPC
-const generateUPC = () => {
-    return Array.from({ length: 12 }, () => Math.floor(Math.random() * 10)).join('');
-};
 
 
 router.get('/getProds', async (req, res) => {
