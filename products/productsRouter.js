@@ -6,6 +6,16 @@ import { fetchDocumentByIndex } from './components/fetchDocumentByIndex.js';
 
 const router = express.Router();
 
+// Helper function to generate a random SKU
+const generateSKU = () => {
+    return Math.floor(100000 + Math.random() * 900000);  // Generates a 6-digit number
+};
+
+// Helper function to generate a random UPC
+const generateUPC = () => {
+    return Array.from({ length: 12 }, () => Math.floor(Math.random() * 10)).join('');
+};
+
 
 router.get('/getProds', async (req, res) => {
     const input = req.query.input;
@@ -147,6 +157,63 @@ router.put('/deleteProd', async (req, res) => {
         }
     } catch (error) {
         console.error('Error deleting product:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.post('/addProduct', async (req, res) => {
+    try {
+        let sku = generateSKU();
+        let upc = generateUPC();
+
+        // Check uniqueness in the database
+        let existingProduct = await ProductModel.findOne({
+            $or: [
+                { sku: sku },
+                { upc: upc }
+            ]
+        });
+
+        // Ensure uniqueness, regenerate again if found
+        while (existingProduct) {
+            sku = generateSKU();
+            upc = generateUPC();
+
+            existingProduct = await ProductModel.findOne({
+                $or: [
+                    { sku: sku },
+                    { upc: upc }
+                ]
+            });    
+        };
+
+        // Create a new product with the unique SKU and UPC
+        const newProduct = new ProductModel({
+            _id: new mongoose.Types.ObjectId(), 
+            sku: sku,
+            upc: upc,
+            name: req.body.name,
+            type: req.body.type,
+            price: req.body.price,
+            category: req.body.category,
+            shipping: req.body.shipping,
+            description: req.body.description,
+            manufacturer: req.body.manufacturer,
+            model: req.body.model,
+            url: req.body.url,
+            image: req.body.image
+        });
+
+        // Save new product
+        await newProduct.save();
+
+        res.status(201).json({
+            message: "Product added successfully!",
+            product: newProduct
+        });
+
+    } catch (error) {
+        console.error('Failed to add product', error);
         res.status(500).json({ error: error.message });
     }
 });
