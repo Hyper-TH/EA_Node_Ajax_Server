@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import ProductModel from '../mongodb/product.js';
 import CategoryModel from '../mongodb/category.js';
 import { countTotalDocuments } from './components/mongoUtils/countTotalDocuments.js';
@@ -105,14 +106,6 @@ router.get("/getItem", async (req, res) => {
     }
 })
 
-router.get("/addProd", async (req, res) => {
-    try {
-        
-    } catch (error) {
-        res.status(500).send({ error })
-    }
-});
-
 router.put("/editProd", async (req, res) => {
     console.log(`Received request of updating a product`);
     const { id, name, manufacturer, price, shipping } = req.body;
@@ -166,6 +159,22 @@ router.get('/getCategories', async (req, res) => {
 });
 
 router.post('/addProduct', async (req, res) => {
+    const { name, type, price, category, shipping, description, manufacturer, model, url, image } = req.body;
+
+    console.log(`
+        Got details: \n
+        name: ${name} \n
+        type: ${type} \n
+        price: ${price} \n
+        category: ${category} \n
+        shipping: ${shipping} \n
+        description: ${description} \n
+        manufacturer: ${manufacturer} \n
+        model: ${model} \n
+        url: ${url} \n
+        image: ${image} \n
+    `);
+
     try {
         let sku = generateSKU();
         let upc = generateUPC();
